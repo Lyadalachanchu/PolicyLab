@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+  --color-amber: #C97A2F;
+  --color-parchment: #F2EBE0;
+}
+
+body {
+  background-color: #F2EBE0;
+  color: #1a1a1a;
+  font-family: system-ui, -apple-system, sans-serif;
+}
