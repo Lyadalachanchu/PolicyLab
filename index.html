@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PolicyLab</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F2EBE0;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .logo { display: flex; align-items: baseline; gap: 8px; }
+    .logo-name { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo-city { font-size: 14px; color: #888; }
+
+    nav { display: flex; align-items: center; gap: 4px; }
+
+    nav a {
+      text-decoration: none;
+      font-size: 14px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      color: #888;
+      transition: color 0.15s;
+      cursor: pointer;
+    }
+
+    nav a:hover { color: #333; }
+    nav a.active { background: #1a1a1a; color: #fff; font-weight: 500; }
+    nav a.disabled { pointer-events: none; opacity: 0.35; }
+
+    /* ── Pages ── */
+    .page { display: none; }
+    .page.visible { display: block; }
+
+    main {
+      max-width: 680px;
+      margin: 72px auto 0;
+      padding: 0 24px 80px;
+    }
+
+    /* ── Typography ── */
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .subtitle em { font-style: normal; color: #C97A2F; }
+
+    /* ── Buttons ── */
+    .actions { display: flex; gap: 10px; }
+
+    .btn-primary {
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+
+    .btn-primary:hover { background: #333; }
+    .btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+    .btn-secondary {
+      background: transparent;
+      color: #555;
+      border: 1px solid #ccc;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-secondary:hover { border-color: #999; color: #333; }
+
+    /* ── Policy input page ── */
+    .input-wrapper {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      border: none;
+      outline: none;
+      resize: vertical;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a1a1a;
+      line-height: 1.6;
+      background: transparent;
+    }
+
+    textarea::placeholder { color: #aaa; }
+
+    /* ── Metrics page ── */
+    .metrics-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .metric-card {
+      background: #fff;
+      border: 1.5px solid #e0d8ce;
+      border-radius: 10px;
+      padding: 16px 18px;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      user-select: none;
+    }
+
+    .metric-card:hover { border-color: #bbb; }
+
+    .metric-card.selected {
+      border-color: #1a1a1a;
+      box-shadow: inset 0 0 0 1px #1a1a1a;
+    }
+
+    .metric-card .check {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1.5px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .metric-card.selected .check {
+      background: #1a1a1a;
+      border-color: #1a1a1a;
+    }
+
+    .metric-card .check svg { display: none; }
+    .metric-card.selected .check svg { display: block; }
+
+    .metric-card .card-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .metric-card .tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #C97A2F;
+    }
+
+    .metric-card .unit {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+    }
+
+    .metric-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      padding-right: 32px;
+    }
+
+    .metric-card .desc {
+      font-size: 12.5px;
+      color: #777;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    /* ── Ranges ── */
+    .metric-ranges {
+      padding-top: 10px;
+      border-top: 1px solid #f0e8de;
+    }
+
+    .ranges-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 7px;
+    }
+
+    .ranges-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .range-chip {
+      font-size: 12px;
+      color: #555;
+      background: #F7F2EC;
+      border: 1px solid #e4dbd0;
+      border-radius: 5px;
+      padding: 3px 9px;
+      white-space: nowrap;
+    }
+
+    /* ── Custom metric input ── */
+    .add-metric-section {
+      margin-bottom: 36px;
+    }
+
+    .add-metric-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .add-metric-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .add-metric-input {
+      flex: 1;
+      background: #fff;
+      border: 1.5px solid #e0d8ce;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .add-metric-input:focus { border-color: #999; }
+    .add-metric-input::placeholder { color: #bbb; }
+
+    .btn-add {
+      background: transparent;
+      border: 1.5px solid #1a1a1a;
+      color: #1a1a1a;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-add:hover { background: #1a1a1a; color: #fff; }
+
+    /* Custom metric chip */
+    .custom-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .custom-chip {
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 12px 5px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .custom-chip button {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.1s;
+    }
+
+    .custom-chip button:hover { color: #fff; }
+
+    /* ── Loading overlay ── */
+    #loading {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #F2EBE0;
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    #loading.visible { display: flex; }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 2.5px solid #ddd;
+      border-top-color: #1a1a1a;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-size: 14px;
+      color: #888;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <span class="logo-name">PolicyLab</span>
+      <span class="logo-city">Amsterdam</span>
+    </div>
+    <nav>
+      <a id="nav-policy" href="#" onclick="goTo('policy'); return false;">Policy input</a>
+      <a id="nav-metrics" href="#" onclick="goTo('metrics'); return false;" class="disabled">Metrics</a>
+      <a id="nav-personas" href="#" class="disabled">Personas</a>
+      <a id="nav-improvements" href="#" class="disabled">Improvements</a>
+    </nav>
+  </header>
+
+  <!-- Loading screen -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <p class="loading-text">Analysing policy…</p>
+  </div>
+
+  <!-- ── Page: Policy input ── -->
+  <main id="page-policy" class="page visible">
+    <p class="eyebrow">Stress-test a policy</p>
+    <h1>Paste a policy.<br>See who gets left behind.</h1>
+    <p class="subtitle">
+      PolicyLab simulates how different Amsterdam citizens would experience your policy — before <em>it</em> launches.
+    </p>
+
+    <div class="input-wrapper">
+      <textarea
+        id="policy-input"
+        placeholder="All Amsterdam municipal services (permits, benefits, reporting) will move to an online-only portal. Physical offices will close. Phone lines limited to emergencies only. Effective 1 September 2025."
+      ></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" onclick="runSimulation()">Run simulation</button>
+      <button class="btn-secondary" onclick="useExample()">Use example policy</button>
+    </div>
+  </main>
+
+  <!-- ── Page: Metrics ── -->
+  <main id="page-metrics" class="page">
+    <p class="eyebrow">Step 2 — Metrics</p>
+    <h1>What should we<br>measure?</h1>
+    <p class="subtitle">
+      Based on your policy, we suggest tracking these outcomes.
+      Select the ones that matter, then add your own.
+    </p>
+
+    <div class="metrics-grid" id="metrics-grid"></div>
+
+    <div class="add-metric-section">
+      <p class="add-metric-label">Add your own metric</p>
+      <div class="add-metric-row">
+        <input
+          class="add-metric-input"
+          id="custom-metric-input"
+          type="text"
+          placeholder="e.g. Resident satisfaction score"
+          onkeydown="if(event.key==='Enter') addCustomMetric()"
+        />
+        <button class="btn-add" onclick="addCustomMetric()">+ Add</button>
+      </div>
+      <div class="custom-metrics" id="custom-metrics"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" onclick="confirmMetrics()">Continue to personas →</button>
+      <button class="btn-secondary" onclick="goTo('policy')">← Back</button>
+    </div>
+  </main>
+
+  <script>
+    /* ── State ── */
+    const EXAMPLE_POLICY = `All Amsterdam municipal services (permits, benefits, reporting) will move to an online-only portal. Physical offices will close. Phone lines limited to emergencies only. Effective 1 September 2025.`;
+
+    const SUGGESTED_METRICS = [
+      {
+        tag: 'Access',
+        name: 'Residents locked out of services',
+        unit: 'people',
+        desc: 'Residents who currently use physical offices and cannot access the portal due to lack of internet, devices, or digital skills.',
+        ranges: ['< 10,000', '10,000 – 25,000', '25,000 – 50,000', '50,000 – 80,000', '> 80,000'],
+      },
+      {
+        tag: 'Performance',
+        name: 'Average request processing time',
+        unit: 'days',
+        desc: 'Mean days to complete a permit, benefit, or report request from submission to resolution.',
+        ranges: ['< 2 days', '2 – 5 days', '5 – 10 days', '10 – 20 days', '> 20 days'],
+      },
+      {
+        tag: 'Finance',
+        name: 'Municipal cost savings',
+        unit: '€ / year',
+        desc: 'Annual savings to the municipality from closing physical offices and reducing counter staff.',
+        ranges: ['Net cost increase', '€0 – €1M', '€1M – €3M', '€3M – €6M', '> €6M'],
+      },
+      {
+        tag: 'Equity',
+        name: 'Residents over 75 affected',
+        unit: 'people',
+        desc: 'Residents aged 75+ who currently rely on in-person services and have low digital literacy.',
+        ranges: ['< 5,000', '5,000 – 15,000', '15,000 – 30,000', '30,000 – 50,000', '> 50,000'],
+      },
+      {
+        tag: 'Demand',
+        name: 'Emergency line call volume',
+        unit: 'calls / month',
+        desc: 'Monthly calls to the emergency phone line — a proxy for how many residents fall through the digital gap.',
+        ranges: ['< 200', '200 – 500', '500 – 2,000', '2,000 – 5,000', '> 5,000'],
+      },
+      {
+        tag: 'Performance',
+        name: 'Self-service completion rate',
+        unit: '%',
+        desc: 'Share of service requests completed by residents without needing human assistance.',
+        ranges: ['< 40%', '40 – 60%', '60 – 75%', '75 – 90%', '> 90%'],
+      },
+    ];
+
+    let selectedMetrics = new Set([0, 1, 2, 3, 4, 5]); // all on by default
+    let customMetrics = [];
+
+    /* ── Navigation ── */
+    const PAGES = ['policy', 'metrics', 'personas', 'improvements'];
+
+    function goTo(page) {
+      PAGES.forEach(p => {
+        document.getElementById(`page-${p}`)?.classList.toggle('visible', p === page);
+        const nav = document.getElementById(`nav-${p}`);
+        if (nav) nav.classList.toggle('active', p === page);
+      });
+    }
+
+    /* ── Policy input page ── */
+    function useExample() {
+      document.getElementById('policy-input').value = EXAMPLE_POLICY;
+    }
+
+    function runSimulation() {
+      const policy = document.getElementById('policy-input').value.trim();
+      if (!policy) return;
+
+      const loading = document.getElementById('loading');
+      loading.classList.add('visible');
+
+      setTimeout(() => {
+        loading.classList.remove('visible');
+        document.getElementById('nav-metrics').classList.remove('disabled');
+        renderMetrics();
+        goTo('metrics');
+      }, 1600);
+    }
+
+    /* ── Metrics page ── */
+    function renderMetrics() {
+      const grid = document.getElementById('metrics-grid');
+      grid.innerHTML = SUGGESTED_METRICS.map((m, i) => `
+        <div class="metric-card ${selectedMetrics.has(i) ? 'selected' : ''}" onclick="toggleMetric(${i})" id="metric-${i}">
+          <div class="check">
+            <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+              <path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="card-header">
+            <span class="tag">${m.tag}</span>
+            <span class="unit">${m.unit}</span>
+          </div>
+          <h3>${m.name}</h3>
+          <p class="desc">${m.desc}</p>
+          <div class="metric-ranges">
+            <div class="ranges-label">Betting ranges</div>
+            <div class="ranges-list">
+              ${m.ranges.map(r => `<span class="range-chip">${r}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleMetric(i) {
+      if (selectedMetrics.has(i)) {
+        selectedMetrics.delete(i);
+      } else {
+        selectedMetrics.add(i);
+      }
+      document.getElementById(`metric-${i}`).classList.toggle('selected', selectedMetrics.has(i));
+    }
+
+    function addCustomMetric() {
+      const input = document.getElementById('custom-metric-input');
+      const name = input.value.trim();
+      if (!name) return;
+
+      customMetrics.push(name);
+      input.value = '';
+      renderCustomMetrics();
+    }
+
+    function removeCustomMetric(i) {
+      customMetrics.splice(i, 1);
+      renderCustomMetrics();
+    }
+
+    function renderCustomMetrics() {
+      const container = document.getElementById('custom-metrics');
+      container.innerHTML = customMetrics.map((m, i) => `
+        <div class="custom-chip">
+          ${m}
+          <button onclick="removeCustomMetric(${i})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function confirmMetrics() {
+      // placeholder — personas page goes here
+      alert('Personas page coming next.');
+    }
+
+    /* ── Init ── */
+    goTo('policy');
+  </script>
+
+</body>
+</html>
