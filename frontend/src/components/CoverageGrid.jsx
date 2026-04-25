@@ -1,32 +1,57 @@
 const STATUS_COLOR = {
-  ok: 'bg-green-500',
-  under: 'bg-yellow-400',
-  over: 'bg-red-400',
+  ok: '#22C55E',
+  under: '#EAB308',
+  over: '#EF4444',
 }
 
 function DimensionTable({ dimension, buckets }) {
   return (
     <div className="bg-white/60 rounded-xl p-4">
-      <h3 className="text-sm font-semibold mb-3 capitalize">{dimension.replace('_', ' ')}</h3>
-      <div className="space-y-2">
-        {Object.entries(buckets).map(([bucket, info]) => (
-          <div key={bucket}>
-            <div className="flex items-center justify-between text-xs mb-0.5">
-              <span className="text-gray-600 capitalize">{bucket.replace('_', ' ')}</span>
-              <span className="text-gray-500">
-                {(info.actual_pct * 100).toFixed(0)}%
-                <span className="text-gray-300 mx-1">/</span>
-                <span className="text-gray-400">{(info.cbs_pct * 100).toFixed(0)}% CBS</span>
-              </span>
+      <h3 className="text-sm font-semibold mb-3 capitalize">
+        {dimension.replace(/_/g, ' ')}
+      </h3>
+      <div className="space-y-3">
+        {Object.entries(buckets).map(([bucket, info]) => {
+          const actual = info.actual_pct   // already a %
+          const cbs = info.cbs_pct
+          const barActual = Math.min(actual, 100)
+          const barCbs = Math.min(cbs, 100)
+
+          return (
+            <div key={bucket}>
+              <div className="flex items-baseline justify-between text-xs mb-1">
+                <span className="text-gray-700 capitalize">{bucket.replace(/_/g, ' ')}</span>
+                <span className="text-gray-500 tabular-nums">
+                  <span className="font-medium" style={{ color: STATUS_COLOR[info.status] }}>
+                    {actual.toFixed(0)}%
+                  </span>
+                  <span className="text-gray-300 mx-1">of personas /</span>
+                  <span className="text-gray-400">{cbs.toFixed(0)}% in city</span>
+                </span>
+              </div>
+
+              {/* Stacked bar: city benchmark (gray) with persona actual (colored) overlaid */}
+              <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
+                {/* CBS benchmark */}
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full opacity-30"
+                  style={{ width: `${barCbs}%`, background: '#6B7280' }}
+                />
+                {/* Actual */}
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full"
+                  style={{ width: `${barActual}%`, background: STATUS_COLOR[info.status] }}
+                />
+              </div>
+
+              <p className="text-xs text-gray-400 mt-0.5">
+                {info.count} persona{info.count !== 1 ? 's' : ''}
+                {info.status === 'under' && ' · underrepresented'}
+                {info.status === 'over' && ' · overrepresented'}
+              </p>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex">
-              <div
-                className={`h-full rounded-full transition-all ${STATUS_COLOR[info.status] || 'bg-gray-400'}`}
-                style={{ width: `${Math.min(info.actual_pct * 100, 100)}%` }}
-              />
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -34,10 +59,15 @@ function DimensionTable({ dimension, buckets }) {
 
 export default function CoverageGrid({ coverage }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {Object.entries(coverage).map(([dimension, buckets]) => (
-        <DimensionTable key={dimension} dimension={dimension} buckets={buckets} />
-      ))}
+    <div>
+      <p className="text-xs text-gray-400 mb-3">
+        Coloured bar = % of your personas · Grey bar = % of city population (CBS)
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {Object.entries(coverage).map(([dimension, buckets]) => (
+          <DimensionTable key={dimension} dimension={dimension} buckets={buckets} />
+        ))}
+      </div>
     </div>
   )
 }

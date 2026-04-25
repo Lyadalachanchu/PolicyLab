@@ -149,7 +149,7 @@ async def generate_bets(
 
     message = await client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=1500,
+        max_tokens=4096,
         system=_SYSTEM_BETTING,
         tools=[_BET_TOOL],
         tool_choice={"type": "tool", "name": "submit_bets"},
