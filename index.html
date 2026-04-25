@@ -250,85 +250,144 @@
       white-space: nowrap;
     }
 
-    /* ── Custom metric input ── */
-    .add-metric-section {
-      margin-bottom: 36px;
-    }
+    /* ── Add metric form ── */
+    .add-metric-section { margin-bottom: 36px; }
 
-    .add-metric-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 10px;
+    .btn-add-trigger {
+      background: transparent;
+      border: 1.5px dashed #c8bfb4;
+      color: #888;
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
     }
+    .btn-add-trigger:hover { border-color: #999; color: #444; }
 
-    .add-metric-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    .add-metric-input {
-      flex: 1;
+    .add-metric-form {
+      display: none;
       background: #fff;
       border: 1.5px solid #e0d8ce;
-      border-radius: 8px;
-      padding: 10px 14px;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .add-metric-form.open { display: block; }
+
+    .form-title {
       font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+    }
+
+    .form-field label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #999;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      background: #F7F2EC;
+      border: 1.5px solid #e0d8ce;
+      border-radius: 7px;
+      padding: 9px 12px;
+      font-size: 13.5px;
       font-family: inherit;
       outline: none;
       transition: border-color 0.15s;
-    }
-
-    .add-metric-input:focus { border-color: #999; }
-    .add-metric-input::placeholder { color: #bbb; }
-
-    .btn-add {
-      background: transparent;
-      border: 1.5px solid #1a1a1a;
       color: #1a1a1a;
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-      white-space: nowrap;
     }
 
-    .btn-add:hover { background: #1a1a1a; color: #fff; }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus { border-color: #999; }
 
-    /* Custom metric chip */
-    .custom-metrics {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
+    .form-field textarea { resize: vertical; min-height: 60px; }
 
-    .custom-chip {
-      background: #1a1a1a;
-      color: #fff;
-      border-radius: 999px;
-      padding: 5px 12px 5px 14px;
-      font-size: 13px;
-      font-weight: 500;
+    .ranges-inputs { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+
+    .range-input-row {
       display: flex;
+      gap: 6px;
       align-items: center;
-      gap: 8px;
     }
 
-    .custom-chip button {
+    .range-input-row input { flex: 1; }
+
+    .btn-remove-range {
       background: none;
       border: none;
-      color: rgba(255,255,255,0.6);
+      color: #bbb;
+      font-size: 18px;
       cursor: pointer;
-      font-size: 16px;
       line-height: 1;
-      padding: 0;
+      padding: 0 4px;
       transition: color 0.1s;
     }
+    .btn-remove-range:hover { color: #888; }
 
-    .custom-chip button:hover { color: #fff; }
+    .btn-add-range {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+      text-align: left;
+      transition: color 0.15s;
+    }
+    .btn-add-range:hover { color: #1a1a1a; }
+
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #f0e8de;
+    }
+
+    .btn-submit {
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 7px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-submit:hover { background: #333; }
+
+    .btn-cancel {
+      background: transparent;
+      color: #888;
+      border: 1px solid #ddd;
+      padding: 10px 16px;
+      border-radius: 7px;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+    .btn-cancel:hover { color: #333; }
 
     /* ── Loading overlay ── */
     #loading {
@@ -417,18 +476,56 @@
     <div class="metrics-grid" id="metrics-grid"></div>
 
     <div class="add-metric-section">
-      <p class="add-metric-label">Add your own metric</p>
-      <div class="add-metric-row">
-        <input
-          class="add-metric-input"
-          id="custom-metric-input"
-          type="text"
-          placeholder="e.g. Resident satisfaction score"
-          onkeydown="if(event.key==='Enter') addCustomMetric()"
-        />
-        <button class="btn-add" onclick="addCustomMetric()">+ Add</button>
+      <button class="btn-add-trigger" id="btn-add-trigger" onclick="openForm()">+ Add your own metric</button>
+
+      <div class="add-metric-form" id="add-metric-form">
+        <div class="form-title">Add a metric</div>
+
+        <div class="form-row">
+          <div class="form-field" style="flex:2">
+            <label>Name</label>
+            <input type="text" id="f-name" placeholder="e.g. Net jobs created" />
+          </div>
+          <div class="form-field" style="flex:1">
+            <label>Unit</label>
+            <input type="text" id="f-unit" placeholder="e.g. jobs, %, €/yr" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Category</label>
+            <select id="f-tag">
+              <option>Access</option>
+              <option>Demand</option>
+              <option>Employment</option>
+              <option>Equity</option>
+              <option>Finance</option>
+              <option>Health</option>
+              <option>Housing</option>
+              <option>Performance</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Description (optional)</label>
+            <textarea id="f-desc" placeholder="What is counted and why it matters for this policy."></textarea>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Betting ranges</label>
+          <div class="ranges-inputs" id="ranges-inputs"></div>
+          <button class="btn-add-range" onclick="addRangeInput()">+ Add range</button>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-submit" onclick="submitCustomMetric()">Add metric</button>
+          <button class="btn-cancel" onclick="closeForm()">Cancel</button>
+        </div>
       </div>
-      <div class="custom-metrics" id="custom-metrics"></div>
     </div>
 
     <div class="actions">
@@ -439,55 +536,11 @@
 
   <script>
     /* ── State ── */
+    const API = 'http://localhost:8000';
     const EXAMPLE_POLICY = `All Amsterdam municipal services (permits, benefits, reporting) will move to an online-only portal. Physical offices will close. Phone lines limited to emergencies only. Effective 1 September 2025.`;
 
-    const SUGGESTED_METRICS = [
-      {
-        tag: 'Access',
-        name: 'Residents locked out of services',
-        unit: 'people',
-        desc: 'Residents who currently use physical offices and cannot access the portal due to lack of internet, devices, or digital skills.',
-        ranges: ['< 10,000', '10,000 – 25,000', '25,000 – 50,000', '50,000 – 80,000', '> 80,000'],
-      },
-      {
-        tag: 'Performance',
-        name: 'Average request processing time',
-        unit: 'days',
-        desc: 'Mean days to complete a permit, benefit, or report request from submission to resolution.',
-        ranges: ['< 2 days', '2 – 5 days', '5 – 10 days', '10 – 20 days', '> 20 days'],
-      },
-      {
-        tag: 'Finance',
-        name: 'Municipal cost savings',
-        unit: '€ / year',
-        desc: 'Annual savings to the municipality from closing physical offices and reducing counter staff.',
-        ranges: ['Net cost increase', '€0 – €1M', '€1M – €3M', '€3M – €6M', '> €6M'],
-      },
-      {
-        tag: 'Equity',
-        name: 'Residents over 75 affected',
-        unit: 'people',
-        desc: 'Residents aged 75+ who currently rely on in-person services and have low digital literacy.',
-        ranges: ['< 5,000', '5,000 – 15,000', '15,000 – 30,000', '30,000 – 50,000', '> 50,000'],
-      },
-      {
-        tag: 'Demand',
-        name: 'Emergency line call volume',
-        unit: 'calls / month',
-        desc: 'Monthly calls to the emergency phone line — a proxy for how many residents fall through the digital gap.',
-        ranges: ['< 200', '200 – 500', '500 – 2,000', '2,000 – 5,000', '> 5,000'],
-      },
-      {
-        tag: 'Performance',
-        name: 'Self-service completion rate',
-        unit: '%',
-        desc: 'Share of service requests completed by residents without needing human assistance.',
-        ranges: ['< 40%', '40 – 60%', '60 – 75%', '75 – 90%', '> 90%'],
-      },
-    ];
-
-    let selectedMetrics = new Set([0, 1, 2, 3, 4, 5]); // all on by default
-    let customMetrics = [];
+    let suggestedMetrics = [];
+    let selectedMetrics = new Set();
 
     /* ── Navigation ── */
     const PAGES = ['policy', 'metrics', 'personas', 'improvements'];
@@ -505,25 +558,45 @@
       document.getElementById('policy-input').value = EXAMPLE_POLICY;
     }
 
-    function runSimulation() {
+    async function runSimulation() {
       const policy = document.getElementById('policy-input').value.trim();
       if (!policy) return;
 
       const loading = document.getElementById('loading');
       loading.classList.add('visible');
 
-      setTimeout(() => {
+      let error = null;
+      try {
+        const res = await fetch(`${API}/metrics/suggest`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ policy }),
+        });
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        suggestedMetrics = await res.json();
+        selectedMetrics = new Set(suggestedMetrics.map((_, i) => i));
+      } catch (e) {
+        error = e.message;
+      } finally {
         loading.classList.remove('visible');
-        document.getElementById('nav-metrics').classList.remove('disabled');
-        renderMetrics();
-        goTo('metrics');
-      }, 1600);
+      }
+
+      document.getElementById('nav-metrics').classList.remove('disabled');
+      renderMetrics(error);
+      goTo('metrics');
     }
 
     /* ── Metrics page ── */
-    function renderMetrics() {
+    function renderMetrics(error) {
       const grid = document.getElementById('metrics-grid');
-      grid.innerHTML = SUGGESTED_METRICS.map((m, i) => `
+      if (error) {
+        grid.innerHTML = `<div style="padding:16px;background:#fff3f3;border:1.5px solid #f5c0c0;border-radius:10px;font-size:13.5px;color:#b00;">
+          Could not reach the server — ${error}.<br>
+          <span style="color:#888;font-weight:400">Start it with <code style="background:#eee;padding:2px 6px;border-radius:4px">uv run fastapi dev api/main.py</code>, then try again.</span>
+        </div>`;
+        return;
+      }
+      grid.innerHTML = suggestedMetrics.map((m, i) => `
         <div class="metric-card ${selectedMetrics.has(i) ? 'selected' : ''}" onclick="toggleMetric(${i})" id="metric-${i}">
           <div class="check">
             <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
@@ -547,41 +620,70 @@
     }
 
     function toggleMetric(i) {
-      if (selectedMetrics.has(i)) {
-        selectedMetrics.delete(i);
-      } else {
-        selectedMetrics.add(i);
-      }
+      selectedMetrics.has(i) ? selectedMetrics.delete(i) : selectedMetrics.add(i);
       document.getElementById(`metric-${i}`).classList.toggle('selected', selectedMetrics.has(i));
     }
 
-    function addCustomMetric() {
-      const input = document.getElementById('custom-metric-input');
-      const name = input.value.trim();
-      if (!name) return;
+    /* ── Add metric form ── */
+    let formRanges = ['', '', '', '', ''];
 
-      customMetrics.push(name);
-      input.value = '';
-      renderCustomMetrics();
+    function openForm() {
+      document.getElementById('btn-add-trigger').style.display = 'none';
+      document.getElementById('add-metric-form').classList.add('open');
+      renderRangeInputs();
     }
 
-    function removeCustomMetric(i) {
-      customMetrics.splice(i, 1);
-      renderCustomMetrics();
+    function closeForm() {
+      document.getElementById('add-metric-form').classList.remove('open');
+      document.getElementById('btn-add-trigger').style.display = '';
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-unit').value = '';
+      document.getElementById('f-desc').value = '';
+      formRanges = ['', '', '', '', ''];
     }
 
-    function renderCustomMetrics() {
-      const container = document.getElementById('custom-metrics');
-      container.innerHTML = customMetrics.map((m, i) => `
-        <div class="custom-chip">
-          ${m}
-          <button onclick="removeCustomMetric(${i})">×</button>
+    function renderRangeInputs() {
+      document.getElementById('ranges-inputs').innerHTML = formRanges.map((v, i) => `
+        <div class="range-input-row">
+          <input type="text" value="${v}" placeholder="e.g. < 1,000 jobs"
+            oninput="formRanges[${i}] = this.value" />
+          <button class="btn-remove-range" onclick="removeRangeInput(${i})">×</button>
         </div>
       `).join('');
     }
 
+    function addRangeInput() {
+      formRanges.push('');
+      renderRangeInputs();
+    }
+
+    function removeRangeInput(i) {
+      formRanges.splice(i, 1);
+      renderRangeInputs();
+    }
+
+    function submitCustomMetric() {
+      const name = document.getElementById('f-name').value.trim();
+      const unit = document.getElementById('f-unit').value.trim();
+      if (!name || !unit) return;
+
+      const ranges = formRanges.map(r => r.trim()).filter(Boolean);
+
+      const metric = {
+        tag:    document.getElementById('f-tag').value,
+        name,
+        unit,
+        desc:   document.getElementById('f-desc').value.trim(),
+        ranges,
+      };
+
+      suggestedMetrics.push(metric);
+      selectedMetrics.add(suggestedMetrics.length - 1);
+      renderMetrics();
+      closeForm();
+    }
+
     function confirmMetrics() {
-      // placeholder — personas page goes here
       alert('Personas page coming next.');
     }
 
