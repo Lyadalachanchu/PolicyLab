@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PolicyLab</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F2EBE0;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .logo {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .logo-name {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-city {
+      font-size: 14px;
+      color: #888;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    nav a {
+      text-decoration: none;
+      font-size: 14px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      color: #888;
+      transition: color 0.15s;
+      cursor: pointer;
+    }
+
+    nav a:hover { color: #333; }
+
+    nav a.active {
+      background: #1a1a1a;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    /* ── Main ── */
+    main {
+      max-width: 680px;
+      margin: 72px auto 0;
+      padding: 0 24px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .subtitle em {
+      font-style: normal;
+      color: #C97A2F;
+    }
+
+    /* ── Textarea ── */
+    .input-wrapper {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      border: none;
+      outline: none;
+      resize: vertical;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a1a1a;
+      line-height: 1.6;
+      background: transparent;
+    }
+
+    textarea::placeholder { color: #aaa; }
+
+    /* ── Buttons ── */
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover { background: #333; }
+
+    .btn-secondary {
+      background: transparent;
+      color: #555;
+      border: 1px solid #ccc;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-secondary:hover { border-color: #999; color: #333; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <span class="logo-name">PolicyLab</span>
+      <span class="logo-city">Amsterdam</span>
+    </div>
+    <nav>
+      <a class="active" href="#">Policy input</a>
+      <a href="#">Personas</a>
+      <a href="#">Metrics</a>
+      <a href="#">Improvements</a>
+    </nav>
+  </header>
+
+  <main>
+    <p class="eyebrow">Stress-test a policy</p>
+    <h1>Paste a policy.<br>See who gets left behind.</h1>
+    <p class="subtitle">
+      PolicyLab simulates how different Amsterdam citizens would experience your policy — before <em>it</em> launches.
+    </p>
+
+    <div class="input-wrapper">
+      <textarea
+        placeholder="All Amsterdam municipal services (permits, benefits, reporting) will move to an online-only portal. Physical offices will close. Phone lines limited to emergencies only. Effective 1 September 2025."
+        id="policy-input"
+      ></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" onclick="runSimulation()">Run simulation</button>
+      <button class="btn-secondary" onclick="useExample()">Use example policy</button>
+    </div>
+  </main>
+
+  <script>
+    const EXAMPLE_POLICY = `All Amsterdam municipal services (permits, benefits, reporting) will move to an online-only portal. Physical offices will close. Phone lines limited to emergencies only. Effective 1 September 2025.`;
+
+    function useExample() {
+      document.getElementById('policy-input').value = EXAMPLE_POLICY;
+    }
+
+    function runSimulation() {
+      const policy = document.getElementById('policy-input').value.trim();
+      if (!policy) return;
+      // placeholder — simulation logic goes here
+      alert('Simulation will run here.');
+    }
+  </script>
+
+</body>
+</html>
