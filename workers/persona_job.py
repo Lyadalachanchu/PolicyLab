@@ -5,11 +5,9 @@ import logging
 from datetime import UTC, datetime
 
 import anthropic
-from arq.connections import RedisSettings
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from config import settings
 from models.db import Gemeente, Persona
 from services.cbs import DemographicDistribution, fetch_distribution, sample_profiles
 from services.llm import generate_persona_narrative
@@ -86,26 +84,3 @@ async def generate_personas(ctx: dict, gemeente_code: str, n: int) -> dict:
 
     logger.info("[%s] Done — persisted %d personas", gemeente_code, n)
     return {"status": "complete", "gemeente_code": gemeente_code, "count": n}
-
-
-# ---------------------------------------------------------------------------
-# Worker lifecycle
-# ---------------------------------------------------------------------------
-
-async def startup(ctx: dict) -> None:
-    engine = create_async_engine(settings.database_url, echo=False)
-    ctx["session_factory"] = async_sessionmaker(engine, expire_on_commit=False)
-    ctx["claude"] = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
-    logger.info("Worker started")
-
-
-async def shutdown(ctx: dict) -> None:
-    logger.info("Worker shutting down")
-
-
-class WorkerSettings:
-    functions = [generate_personas]
-    on_startup = startup
-    on_shutdown = shutdown
-    redis_settings = RedisSettings.from_dsn(settings.redis_url)
-    max_tries = 3  # ARQ will retry the whole job up to 3 times on unhandled exceptions
