@@ -80,6 +80,9 @@ export default function App() {
   const [policyTitle, setPolicyTitle] = useState(() => load('policyTitle') || '')
   const [policyText, setPolicyText] = useState(() => load('policyText') || '')
   const [simulationId, setSimulationId] = useState(() => load('simulationId') || null)
+  const [personasDone, setPersonasDone] = useState(() => !!load('personasDone'))
+  const [personaCount, setPersonaCount] = useState(() => load('personaCount') || 0)
+  const [simulationComplete, setSimulationComplete] = useState(() => !!load('simulationComplete'))
 
   // Which section is expanded — open the furthest completed + 1 by default
   const initialOpen = () => {
@@ -95,6 +98,9 @@ export default function App() {
   useEffect(() => save('policyTitle', policyTitle), [policyTitle])
   useEffect(() => save('policyText', policyText), [policyText])
   useEffect(() => save('simulationId', simulationId), [simulationId])
+  useEffect(() => save('personasDone', personasDone), [personasDone])
+  useEffect(() => save('personaCount', personaCount), [personaCount])
+  useEffect(() => save('simulationComplete', simulationComplete), [simulationComplete])
 
   function toggle(i) {
     setOpenIndex((prev) => (prev === i ? -1 : i))
@@ -110,9 +116,19 @@ export default function App() {
     setOpenIndex(3) // open Metrics
   }
 
+  function handlePersonasDone(count) {
+    setPersonasDone(count > 0)
+    setPersonaCount(count)
+  }
+
   function handleSimulationDone(id) {
     setSimulationId(id)
+    setSimulationComplete(false) // new simulation, not yet run
     setOpenIndex(4) // open Results
+  }
+
+  function handleSimulationComplete() {
+    setSimulationComplete(true)
   }
 
   function handleImprovementsAccepted(newPolicyId, newPolicyText, newSimulationId) {
@@ -120,6 +136,7 @@ export default function App() {
     setPolicyText(newPolicyText)
     setPolicyTitle((t) => t.replace(' (revised)', '') + ' (revised)')
     setSimulationId(newSimulationId)
+    setSimulationComplete(false) // new simulation, not yet run
     setOpenIndex(4) // open Results
   }
 
@@ -134,10 +151,10 @@ export default function App() {
 
   const summaries = [
     gemeenteCode || null,
-    gemeenteCode ? `${load('personaCount') || ''} personas for ${gemeenteCode}`.trim() : null,
+    personasDone && gemeenteCode ? `${personaCount} personas for ${gemeenteCode}` : null,
     policyTitle || null,
     policyId ? 'Metrics configured' : null,
-    simulationId ? 'Simulation ready' : null,
+    simulationComplete ? 'Simulation complete' : simulationId ? 'Simulation ready' : null,
     null,
   ]
 
@@ -151,8 +168,8 @@ export default function App() {
     },
     {
       label: 'Personas',
-      complete: false,
-      content: <PersonasPage gemeenteCode={gemeenteCode} />,
+      complete: personasDone,
+      content: <PersonasPage gemeenteCode={gemeenteCode} onDone={handlePersonasDone} />,
     },
     {
       label: 'Policy',
@@ -175,11 +192,12 @@ export default function App() {
     },
     {
       label: 'Results',
-      complete: false,
+      complete: simulationComplete,
       content: (
         <ResultsPage
           simulationId={simulationId}
           onViewImprovements={() => setOpenIndex(5)}
+          onComplete={handleSimulationComplete}
         />
       ),
     },

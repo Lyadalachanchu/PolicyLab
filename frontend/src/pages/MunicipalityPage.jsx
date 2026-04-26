@@ -68,9 +68,9 @@ export default function MunicipalityPage({ initialCode, onDone }) {
         <ol className="space-y-3">
           {[
             'CBS demographic data is fetched for the selected municipality',
-            '50 synthetic citizen personas are generated via Claude AI',
-            'You define a policy and choose measurable outcome metrics',
-            'Personas bet on LMSR prediction markets to surface probable outcomes',
+            '30 synthetic citizen personas are generated via Claude AI',
+            'You define a policy and pick citizen-experience questions to evaluate it',
+            'Each persona responds to outcome questions from their lived perspective',
           ].map((step, i) => (
             <li key={i} className="flex gap-4 text-sm text-gray-600">
               <span className="w-6 h-6 shrink-0 flex items-center justify-center text-xs font-semibold text-white mt-0.5" style={{ background: '#293340' }}>

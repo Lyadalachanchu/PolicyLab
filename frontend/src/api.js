@@ -16,7 +16,7 @@ async function req(method, path, body) {
 export const api = {
   getMunicipality: (code) => req('GET', `/municipalities/${code}`),
 
-  generatePersonas: (code, n = 50) =>
+  generatePersonas: (code, n = 30) =>
     req('POST', `/municipalities/${code}/personas/generate`, { n }),
 
   getPersonas: (code) => req('GET', `/municipalities/${code}/personas`),

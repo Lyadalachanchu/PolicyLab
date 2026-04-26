@@ -5,7 +5,7 @@ import MarketCard from '../components/MarketCard'
 const STATUS_LABEL = { pending: 'Pending', running: 'Running', complete: 'Complete' }
 const STATUS_COLOR = { pending: '#8A8A8A', running: '#C97A2F', complete: '#389800' }
 
-export default function ResultsPage({ simulationId, onViewImprovements }) {
+export default function ResultsPage({ simulationId, onViewImprovements, onComplete }) {
   const [sim, setSim] = useState(null)
   const [markets, setMarkets] = useState(null)
   const [error, setError] = useState('')
@@ -25,6 +25,10 @@ export default function ResultsPage({ simulationId, onViewImprovements }) {
     if (!simulationId) return
     fetchSim(); fetchMarkets()
   }, [simulationId, fetchSim, fetchMarkets])
+
+  useEffect(() => {
+    if (sim?.status === 'complete') onComplete?.()
+  }, [sim, onComplete])
 
   useEffect(() => {
     if (!sim) return

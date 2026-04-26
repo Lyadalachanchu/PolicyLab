@@ -122,7 +122,7 @@ async def suggest_improvements(
         f"Policy title: {policy_title}\n\n"
         f"Policy text:\n{policy_description}\n\n"
         f"---\n\n"
-        f"Below are prediction market results showing what 50 citizen personas believe will "
+        f"Below are prediction market results showing what 30 citizen personas believe will "
         f"happen IF THIS POLICY PASSES. Each persona bet based on their own lived experience.\n\n"
         + "\n\n".join(market_summaries)
         + "\n\n---\n\n"

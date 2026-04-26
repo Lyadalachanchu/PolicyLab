@@ -160,7 +160,7 @@ export default function MarketCard({ market }) {
           If Policy {market.condition}
         </span>
         <span className="text-xs" style={{ color: passes ? 'rgba(255,255,255,0.5)' : '#8A8A8A' }}>
-          {market.total_bets} bets
+          {market.total_bets} responses
         </span>
       </div>
 

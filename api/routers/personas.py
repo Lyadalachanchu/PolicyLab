@@ -20,7 +20,7 @@ router = APIRouter(prefix="/municipalities", tags=["personas"])
 # ---------------------------------------------------------------------------
 
 class GenerateRequest(BaseModel):
-    n: int = Field(default=50, ge=1, le=500)
+    n: int = Field(default=30, ge=1, le=500)
 
 
 class PersonaCreate(BaseModel):

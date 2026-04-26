@@ -4,13 +4,13 @@ import PersonaCard from '../components/PersonaCard'
 import CoverageGrid from '../components/CoverageGrid'
 import AddPersonaForm from '../components/AddPersonaForm'
 
-export default function PersonasPage({ gemeenteCode }) {
+export default function PersonasPage({ gemeenteCode, onDone }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
-  const [n, setN] = useState(50)
+  const [n, setN] = useState(30)
 
   const fetchPersonas = useCallback(async () => {
     try { const res = await api.getPersonas(gemeenteCode); setData(res); return res }
@@ -18,6 +18,13 @@ export default function PersonasPage({ gemeenteCode }) {
   }, [gemeenteCode])
 
   useEffect(() => { if (gemeenteCode) fetchPersonas() }, [gemeenteCode, fetchPersonas])
+
+  // Sync completion state to parent whenever data changes — clears stale localStorage ticks
+  useEffect(() => {
+    if (data === null) return
+    const isDone = data.generation_status === 'complete' && (data.personas?.length || 0) > 0
+    onDone?.(isDone ? data.personas.length : 0)
+  }, [data, onDone])
 
   useEffect(() => {
     if (!data) return
