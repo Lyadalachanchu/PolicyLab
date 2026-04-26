@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -35,8 +36,11 @@ class BetRead(BaseModel):
     reason: str
     batch_index: int
     created_at: datetime
-
-    model_config = {"from_attributes": True}
+    # Persona demographics for grouping in the frontend
+    persona_age_band: Optional[str] = None
+    persona_income_quartile: Optional[str] = None
+    persona_housing_type: Optional[str] = None
+    persona_employment_status: Optional[str] = None
 
 
 class MarketDetail(BaseModel):
@@ -63,7 +67,7 @@ async def list_markets(simulation_id: int, session: AsyncSession = Depends(get_s
         await session.execute(
             select(Market)
             .where(Market.simulation_id == simulation_id)
-            .options(selectinload(Market.bets))
+            .options(selectinload(Market.bets).selectinload(Bet.persona))
             .order_by(Market.metric_id, Market.condition)
         )
     ).scalars().all()
@@ -81,7 +85,7 @@ async def get_market(market_id: int, session: AsyncSession = Depends(get_session
         await session.execute(
             select(Market)
             .where(Market.id == market_id)
-            .options(selectinload(Market.bets))
+            .options(selectinload(Market.bets).selectinload(Bet.persona))
         )
     ).scalar_one_or_none()
 
@@ -102,16 +106,36 @@ async def list_bets(market_id: int, session: AsyncSession = Depends(get_session)
         await session.execute(
             select(Bet)
             .where(Bet.market_id == market_id)
+            .options(selectinload(Bet.persona))
             .order_by(Bet.batch_index, Bet.created_at)
         )
     ).scalars().all()
 
-    return [BetRead.model_validate(b) for b in bets]
+    return [_bet_read(b) for b in bets]
 
 
 # ---------------------------------------------------------------------------
-# Helper
+# Helpers
 # ---------------------------------------------------------------------------
+
+def _bet_read(bet: Bet) -> BetRead:
+    p = bet.persona
+    return BetRead(
+        id=bet.id,
+        persona_id=bet.persona_id,
+        bucket_index=bet.bucket_index,
+        bucket_label=bet.bucket_label,
+        shares=bet.shares,
+        cost=bet.cost,
+        reason=bet.reason,
+        batch_index=bet.batch_index,
+        created_at=bet.created_at,
+        persona_age_band=p.age_band if p else None,
+        persona_income_quartile=p.income_quartile if p else None,
+        persona_housing_type=p.housing_type if p else None,
+        persona_employment_status=p.employment_status if p else None,
+    )
+
 
 def _market_detail(market: Market) -> MarketDetail:
     probs = lmsr.prices(market.q_vector, market.b)
@@ -134,5 +158,5 @@ def _market_detail(market: Market) -> MarketDetail:
         b=market.b,
         buckets=buckets,
         total_bets=len(market.bets),
-        bets=[BetRead.model_validate(b) for b in market.bets],
+        bets=[_bet_read(b) for b in market.bets],
     )

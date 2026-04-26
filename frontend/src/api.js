@@ -37,4 +37,7 @@ export const api = {
   getMarkets: (simulationId) => req('GET', `/simulations/${simulationId}/markets`),
 
   getMarket: (marketId) => req('GET', `/markets/${marketId}`),
+
+  getImprovements: (simulationId) =>
+    req('POST', `/simulations/${simulationId}/improvements`),
 }

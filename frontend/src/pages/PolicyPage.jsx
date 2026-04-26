@@ -21,7 +21,7 @@ export default function PolicyPage({ gemeenteCode, onDone }) {
         title: title.trim(),
         description: description.trim(),
       })
-      onDone(policy.id, description.trim())
+      onDone(policy.id, title.trim(), description.trim())
     } catch (err) {
       setError(err.message)
     } finally {
@@ -31,14 +31,15 @@ export default function PolicyPage({ gemeenteCode, onDone }) {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold mb-2">Define Policy</h1>
-      <p className="text-gray-600 mb-6">
+      <p className="text-xs uppercase tracking-widest text-gray-400 mb-3" style={{ letterSpacing: '0.12em' }}>Step 3 of 6</p>
+      <h1 className="text-4xl mb-2" style={{ fontFamily: 'Instrument Serif, Georgia, serif' }}>Define Policy</h1>
+      <p className="text-gray-500 mb-10 text-lg">
         Describe the policy you want to stress-test against citizen personas.
       </p>
 
-      <form onSubmit={handleSubmit} className="bg-white/60 rounded-2xl p-6 shadow-sm space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-semibold uppercase tracking-widest text-gray-500 mb-2" style={{ letterSpacing: '0.1em' }}>
             Policy Title
           </label>
           <input
@@ -46,37 +47,39 @@ export default function PolicyPage({ gemeenteCode, onDone }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Affordable Housing Initiative 2025"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none bg-white"
+            className="w-full border border-gray-300 px-4 py-3 text-base focus:outline-none focus:border-gray-900 transition-colors"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-semibold uppercase tracking-widest text-gray-500 mb-2" style={{ letterSpacing: '0.1em' }}>
             Policy Description
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe the policy in detail — what it does, who it affects, how it will be implemented, and what outcomes you hope to achieve..."
-            rows={8}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none bg-white resize-none"
+            placeholder="Describe the policy in detail — what it does, who it affects, how it will be implemented, and what outcomes you hope to achieve…"
+            rows={9}
+            className="w-full border border-gray-300 px-4 py-3 text-base focus:outline-none focus:border-gray-900 transition-colors resize-none"
           />
           <p className="text-xs text-gray-400 mt-1">
-            The more detail you provide, the better the metric suggestions and persona responses will be.
+            The more detail you provide, the more accurate the metric suggestions and persona responses will be.
           </p>
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+          <div className="border-l-4 border-red-600 bg-red-50 px-4 py-3">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
         )}
 
         <button
           type="submit"
           disabled={loading || !title.trim() || !description.trim()}
-          className="w-full py-3 rounded-xl font-medium text-white transition-opacity disabled:opacity-50"
-          style={{ background: '#C97A2F' }}
+          className="px-8 py-3 text-sm font-semibold uppercase text-white disabled:opacity-40"
+          style={{ background: '#0D132D', letterSpacing: '0.08em' }}
         >
-          {loading ? 'Creating Policy…' : 'Create Policy →'}
+          {loading ? 'Creating…' : 'Create Policy'}
         </button>
       </form>
     </div>

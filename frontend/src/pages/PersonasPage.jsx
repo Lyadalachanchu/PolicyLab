@@ -4,7 +4,7 @@ import PersonaCard from '../components/PersonaCard'
 import CoverageGrid from '../components/CoverageGrid'
 import AddPersonaForm from '../components/AddPersonaForm'
 
-export default function PersonasPage({ gemeenteCode, onNext }) {
+export default function PersonasPage({ gemeenteCode }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
@@ -13,22 +13,12 @@ export default function PersonasPage({ gemeenteCode, onNext }) {
   const [n, setN] = useState(50)
 
   const fetchPersonas = useCallback(async () => {
-    try {
-      const res = await api.getPersonas(gemeenteCode)
-      setData(res)
-      return res
-    } catch {
-      // gemeente not yet created — that's fine
-      return null
-    }
+    try { const res = await api.getPersonas(gemeenteCode); setData(res); return res }
+    catch { return null }
   }, [gemeenteCode])
 
-  useEffect(() => {
-    if (!gemeenteCode) return
-    fetchPersonas()
-  }, [gemeenteCode, fetchPersonas])
+  useEffect(() => { if (gemeenteCode) fetchPersonas() }, [gemeenteCode, fetchPersonas])
 
-  // Poll while generating
   useEffect(() => {
     if (!data) return
     if (data.generation_status !== 'pending' && data.generation_status !== 'running') return
@@ -40,21 +30,10 @@ export default function PersonasPage({ gemeenteCode, onNext }) {
   }, [data, fetchPersonas])
 
   async function handleGenerate() {
-    setGenerating(true)
-    setError('')
-    try {
-      await api.generatePersonas(gemeenteCode, n)
-      await fetchPersonas()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  async function handlePersonaAdded() {
-    setShowAddForm(false)
-    await fetchPersonas()
+    setGenerating(true); setError('')
+    try { await api.generatePersonas(gemeenteCode, n); await fetchPersonas() }
+    catch (err) { setError(err.message) }
+    finally { setGenerating(false) }
   }
 
   const status = data?.generation_status
@@ -64,63 +43,53 @@ export default function PersonasPage({ gemeenteCode, onNext }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      {/* Page header */}
+      <div className="flex items-start justify-between mb-10" style={{ borderBottom: '1px solid #D9DEE8', paddingBottom: '2rem' }}>
         <div>
-          <h1 className="text-2xl font-bold">Citizen Personas</h1>
-          <p className="text-gray-600 mt-1">
-            CBS-anchored synthetic residents for {gemeenteCode}
-          </p>
+          <p className="text-xs uppercase tracking-widest text-gray-400 mb-2" style={{ letterSpacing: '0.12em' }}>Step 2 of 6</p>
+          <h1 className="text-4xl mb-2" style={{ fontFamily: 'Instrument Serif, Georgia, serif' }}>Citizen Personas</h1>
+          <p className="text-gray-500 text-lg">CBS-anchored synthetic residents for {gemeenteCode}</p>
         </div>
         {isDone && (
-          <button
-            onClick={onNext}
-            className="px-5 py-2 rounded-xl font-medium text-white"
-            style={{ background: '#C97A2F' }}
-          >
-            Next: Create Policy →
-          </button>
+          <span className="text-xs uppercase tracking-widest text-green-600 font-semibold" style={{ letterSpacing: '0.1em' }}>
+            ✓ Complete — scroll to continue
+          </span>
         )}
       </div>
 
-      {/* Generation panel */}
+      {/* Generation status */}
       {!isDone && (
-        <div className="bg-white/60 rounded-2xl p-6 shadow-sm mb-6">
+        <div style={{ border: '1px solid #D9DEE8' }} className="p-6 mb-8">
           {isRunning ? (
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+            <div className="flex items-center gap-4">
+              <div className="w-5 h-5 border-2 border-gray-800 border-t-transparent rounded-full animate-spin shrink-0" />
               <div>
-                <p className="font-medium">Generating personas…</p>
-                <p className="text-sm text-gray-500">
-                  {status === 'pending' ? 'Queued — fetching CBS data' : 'Generating narratives via Claude'}
+                <p className="font-semibold">Generating personas…</p>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {status === 'pending' ? 'Queued — fetching CBS demographic data' : 'Generating narratives via Claude'}
                 </p>
               </div>
             </div>
           ) : (
             <div>
-              <p className="font-medium mb-4">No personas generated yet</p>
+              <p className="font-semibold mb-1">No personas generated yet</p>
+              <p className="text-sm text-gray-500 mb-5">Generate CBS-anchored personas for {gemeenteCode} before running a simulation.</p>
               <div className="flex items-center gap-4">
-                <label className="text-sm text-gray-600">
-                  Count:
-                  <input
-                    type="number"
-                    value={n}
-                    min={1}
-                    max={500}
-                    onChange={(e) => setN(Number(e.target.value))}
-                    className="ml-2 w-20 border border-gray-200 rounded-lg px-2 py-1 text-sm"
-                  />
-                </label>
-                <button
-                  onClick={handleGenerate}
-                  disabled={generating}
-                  className="px-5 py-2 rounded-xl font-medium text-white disabled:opacity-50"
-                  style={{ background: '#C97A2F' }}
-                >
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-semibold uppercase text-gray-500" style={{ letterSpacing: '0.08em' }}>Count</label>
+                  <input type="number" value={n} min={1} max={500} onChange={(e) => setN(Number(e.target.value))}
+                    className="w-20 border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:border-gray-900" />
+                </div>
+                <button onClick={handleGenerate} disabled={generating}
+                  className="px-6 py-2 text-xs font-semibold uppercase text-white disabled:opacity-40"
+                  style={{ background: '#0D132D', letterSpacing: '0.08em' }}>
                   {generating ? 'Starting…' : 'Generate Personas'}
                 </button>
               </div>
               {error && (
-                <p className="mt-3 text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+                <div className="border-l-4 border-red-600 bg-red-50 px-4 py-3 mt-4">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
               )}
             </div>
           )}
@@ -129,49 +98,44 @@ export default function PersonasPage({ gemeenteCode, onNext }) {
 
       {/* Coverage */}
       {data?.coverage && Object.keys(data.coverage).length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">Demographic Coverage</h2>
+        <section className="mb-10">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5" style={{ letterSpacing: '0.1em' }}>
+            Demographic Coverage
+          </h2>
           <CoverageGrid coverage={data.coverage} />
-        </div>
+        </section>
       )}
 
       {/* Personas list */}
       {personas.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">
+        <section>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400" style={{ letterSpacing: '0.1em' }}>
               {personas.length} Persona{personas.length !== 1 ? 's' : ''}
             </h2>
-            <button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="text-sm px-4 py-1.5 rounded-xl border font-medium"
-              style={{ borderColor: '#C97A2F', color: '#C97A2F' }}
-            >
+            <button onClick={() => setShowAddForm(!showAddForm)}
+              className="text-xs font-semibold uppercase px-4 py-2"
+              style={{ border: '1px solid #D9DEE8', color: '#293340', letterSpacing: '0.08em' }}>
               + Add Manual Persona
             </button>
           </div>
 
           {showAddForm && (
-            <div className="mb-4">
-              <AddPersonaForm
-                gemeenteCode={gemeenteCode}
-                onDone={handlePersonaAdded}
-                onCancel={() => setShowAddForm(false)}
-              />
+            <div className="mt-4 mb-4">
+              <AddPersonaForm gemeenteCode={gemeenteCode}
+                onDone={async () => { setShowAddForm(false); await fetchPersonas() }}
+                onCancel={() => setShowAddForm(false)} />
             </div>
           )}
 
-          <div className="space-y-2">
+          <div style={{ borderTop: '1px solid #D9DEE8' }}>
             {personas.map((p) => (
-              <PersonaCard
-                key={p.id}
-                persona={p}
+              <PersonaCard key={p.id} persona={p}
                 expanded={expandedId === p.id}
-                onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
-              />
+                onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)} />
             ))}
           </div>
-        </div>
+        </section>
       )}
     </div>
   )

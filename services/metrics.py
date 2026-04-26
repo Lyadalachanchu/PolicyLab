@@ -7,14 +7,23 @@ VALID_TAGS = ["Access", "Equity", "Finance", "Performance", "Demand", "Employmen
 
 _SYSTEM = (
     "You are a policy analysis assistant for Dutch municipalities. "
-    "Given a policy text, suggest concrete, measurable outcome metrics policymakers should track. "
-    "Every metric must have a specific unit (people, jobs, €/year, days, %, etc.) and "
-    "realistic prediction-market ranges that are mutually exclusive and exhaustive."
+    "Suggest outcome metrics framed as plain-language questions any resident can answer "
+    "from their personal lived experience — things they would directly feel or notice in daily life. "
+    "Avoid bureaucratic KPIs like penalty revenues, compliance percentages, or technical targets. "
+    "Good metrics ask things like: 'Will it become easier for me to find an affordable home?', "
+    "'Will my rent go up because of this?', 'Will my neighbourhood feel safer or more crowded?', "
+    "'Will people like me be able to stay in this city?' "
+    "Buckets must use plain human-experience language — "
+    "e.g. 'Much easier / Slightly easier / No change / Slightly harder / Much harder' "
+    "or 'Strongly agree / Agree / Neutral / Disagree / Strongly disagree'. "
+    "Never use monetary ranges, percentages, or technical measurements as buckets. "
+    "Each metric should be something a social housing tenant, a young renter, AND a retired homeowner "
+    "can all have a meaningful and different opinion about."
 )
 
 _TOOL = {
     "name": "suggest_metrics",
-    "description": "Return concrete outcome metrics for evaluating the given policy.",
+    "description": "Return citizen-experience outcome metrics for evaluating the given policy.",
     "input_schema": {
         "type": "object",
         "properties": {
@@ -31,25 +40,32 @@ _TOOL = {
                         },
                         "name": {
                             "type": "string",
-                            "description": "Short, concrete metric name (e.g. 'Net jobs created', 'Average rent change')",
+                            "description": "A plain-language question a citizen would ask about their own life (e.g. 'Will I find affordable housing?', 'Will my rent increase?')",
                         },
                         "unit": {
                             "type": "string",
-                            "description": "Unit of measurement (e.g. 'jobs', '€/month', 'days', '%', 'people')",
+                            "description": "The experience dimension being measured (e.g. 'housing access', 'financial stress', 'neighbourhood quality', 'job security')",
                         },
                         "desc": {
                             "type": "string",
-                            "description": "One sentence: what is counted and why it matters for this policy.",
+                            "description": "One sentence: what lived experience this captures, who it most affects, and why it matters for this policy.",
                         },
                         "ranges": {
                             "type": "array",
-                            "description": "5 betting ranges covering all realistic outcomes, from worst to best.",
+                            "description": "5 human-experience outcome levels from worst to best. Use plain language like 'Much harder', 'Slightly harder', 'No change', 'Slightly easier', 'Much easier'. Never use numbers, percentages, or monetary values.",
                             "minItems": 4,
                             "maxItems": 6,
                             "items": {"type": "string"},
                         },
+                        "affected_groups": {
+                            "type": "array",
+                            "description": "2-4 demographic groups whose lived experience of this metric will differ most (e.g. 'Social housing tenants', 'Young renters (18-34)', 'Low-income households', 'Homeowners', 'Self-employed')",
+                            "minItems": 2,
+                            "maxItems": 4,
+                            "items": {"type": "string"},
+                        },
                     },
-                    "required": ["tag", "name", "unit", "desc", "ranges"],
+                    "required": ["tag", "name", "unit", "desc", "ranges", "affected_groups"],
                 },
             }
         },
@@ -64,6 +80,7 @@ class MetricSuggestion(BaseModel):
     unit: str
     desc: str
     ranges: list[str]
+    affected_groups: list[str] = []
 
 
 async def suggest_metrics(policy: str, client: anthropic.AsyncAnthropic) -> list[MetricSuggestion]:

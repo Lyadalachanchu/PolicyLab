@@ -27,6 +27,80 @@ _INCOME_LABELS = {
     "Q4": "high income (top 25%)",
 }
 
+def _persona_stance(persona) -> str:
+    """Derive an explicit government-trust stance from demographic attributes.
+
+    This injects genuine prior diversity: low-income social renters have been
+    burned by housing promises; high-income owners are detached; self-employed
+    people distrust bureaucracy; students are idealistic, etc.
+    """
+    lines = []
+
+    # Housing situation → direct stake + track record
+    if persona.housing_type == "social_rent":
+        lines.append(
+            "You live in social housing and have direct experience with how slowly "
+            "the municipality moves on housing promises. You've heard these targets before."
+        )
+    elif persona.housing_type == "private_rent":
+        lines.append(
+            "You rent privately and are squeezed by the market. You desperately want "
+            "more social housing but have learned to be sceptical of delivery timelines."
+        )
+    else:  # owner
+        lines.append(
+            "You own your home. Housing policy affects your neighbourhood and property "
+            "value, but you're not personally dependent on social housing delivery."
+        )
+
+    # Income → trust in government institutions
+    if persona.income_quartile == "Q1":
+        lines.append(
+            "On a low income, you've seen how underfunded programmes get watered down. "
+            "You don't expect the full ambition to survive contact with reality."
+        )
+    elif persona.income_quartile == "Q4":
+        lines.append(
+            "You're comfortable financially. You follow policy debates at a distance "
+            "and tend to trust that well-designed incentive structures work as advertised."
+        )
+
+    # Employment → specific insider knowledge
+    if persona.employment_status == "self_employed":
+        lines.append(
+            "As a self-employed person you know how slow permit processes and "
+            "bureaucratic incentives are to take effect in practice."
+        )
+    elif persona.employment_status == "unemployed":
+        lines.append(
+            "Unemployed, you're acutely aware of how institutional promises rarely "
+            "reach the people who need them most."
+        )
+    elif persona.employment_status == "student":
+        lines.append(
+            "As a student you're idealistic about what bold policy can achieve, "
+            "though you've never personally navigated a housing waitlist."
+        )
+    elif persona.employment_status == "retired":
+        lines.append(
+            "Retired, you've lived through decades of Amsterdam housing policy and "
+            "have a long memory for promises versus outcomes."
+        )
+
+    # Age → length of lived experience
+    if persona.age_band in ("55-64", "65+"):
+        lines.append(
+            "You've watched this city change over many decades and are deeply sceptical "
+            "of ambitious targets set by administrations that won't be around to be held accountable."
+        )
+    elif persona.age_band in ("18-24", "25-34"):
+        lines.append(
+            "You're young and this policy matters enormously to your near-term housing "
+            "situation, making you pay close attention to whether it can actually deliver."
+        )
+
+    return " ".join(lines)
+
 _BET_TOOL: dict = {
     "name": "submit_bets",
     "description": "Submit your bets for all prediction markets listed.",
@@ -113,13 +187,16 @@ async def generate_bets(
     """
     income_label = _INCOME_LABELS.get(persona.income_quartile, persona.income_quartile)
 
+    stance = _persona_stance(persona)
+
     persona_block = (
         f"You are a citizen of {gemeente_name}.\n\n"
-        f"About you:\n{persona.narrative}\n\n"
-        f"Profile: {persona.age_band}, {persona.gender}, {income_label}, "
+        f"Your story:\n{persona.narrative}\n\n"
+        f"Your profile: {persona.age_band}, {persona.gender}, {income_label}, "
         f"{persona.employment_status.replace('_', ' ')}, "
         f"{persona.migration_background.replace('_', ' ')} heritage, "
-        f"{persona.housing_type.replace('_', ' ')} housing."
+        f"{persona.housing_type.replace('_', ' ')} housing.\n\n"
+        f"Your relationship to this kind of policy:\n{stance}"
     )
 
     policy_block = f"Policy being evaluated:\n**{policy.title}**\n{policy.description}"
@@ -138,14 +215,46 @@ async def generate_bets(
 
     markets_block = "\n\n".join(markets_block_parts)
 
-    prompt = (
+    reasoning_prompt = (
         f"{persona_block}\n\n"
         f"{policy_block}\n\n"
-        f"You have 100 points to bet on each market below. "
-        f"For each market, choose the bucket you think is most likely "
-        f"and explain your reasoning from your personal perspective.\n\n"
-        f"{markets_block}"
+        f"In 4-6 sentences, speak as this person: what is your gut reaction to this policy? "
+        f"Do you believe the municipality will actually deliver on its promises, given your "
+        f"personal experience? What specific parts make you hopeful or sceptical? "
+        f"How does your own housing situation and income affect what this policy means for you? "
+        f"Be concrete and personal — not a balanced analysis, but YOUR honest reaction."
     )
+
+    # Call 1 (Haiku): generate genuine persona reasoning — no tool, no structure.
+    # This produces actually different text for each persona based on their stance.
+    reasoning_response = await client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=400,
+        system=_SYSTEM_BETTING,
+        messages=[{"role": "user", "content": reasoning_prompt}],
+    )
+    persona_reasoning = reasoning_response.content[0].text.strip()
+
+    bet_prompt = (
+        f"{persona_block}\n\n"
+        f"{policy_block}\n\n"
+        f"Markets to bet on:\n\n{markets_block}"
+    )
+
+    # Call 2 (Sonnet): use the real reasoning as context, then force structured bets.
+    # The reasoning primes Claude to stay in character for each market.
+    messages = [
+        {"role": "user", "content": bet_prompt},
+        {"role": "assistant", "content": persona_reasoning},
+        {
+            "role": "user",
+            "content": (
+                "Staying in character with everything you just expressed, "
+                "now submit your bets using the submit_bets tool. "
+                "Your scepticism or optimism should be reflected in which buckets you choose."
+            ),
+        },
+    ]
 
     message = await client.messages.create(
         model="claude-sonnet-4-6",
@@ -153,7 +262,7 @@ async def generate_bets(
         system=_SYSTEM_BETTING,
         tools=[_BET_TOOL],
         tool_choice={"type": "tool", "name": "submit_bets"},
-        messages=[{"role": "user", "content": prompt}],
+        messages=messages,
     )
 
     bets: list[dict] = []

@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from models.db import init_db
-from api.routers import markets, metrics, municipalities, personas, simulations
+from api.routers import improvements, markets, metrics, municipalities, personas, simulations
 
 
 @asynccontextmanager
@@ -40,3 +40,4 @@ app.include_router(metrics.router)
 app.include_router(personas.router)
 app.include_router(simulations.router)
 app.include_router(markets.router)
+app.include_router(improvements.router)
